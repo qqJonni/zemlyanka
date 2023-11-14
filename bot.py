@@ -9,6 +9,8 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from dotenv import load_dotenv, find_dotenv
 from aiogram import executor, types, Bot, Dispatcher
 
+from sqlite import db_start, create_profile, edit_profile
+
 
 load_dotenv(find_dotenv())
 storage = MemoryStorage()
@@ -17,8 +19,11 @@ dp = Dispatcher(bot, storage=storage)
 media_group = [types.InputMediaPhoto(media=photo) for photo in long_messages.ZEM_PHOTOS]
 
 
-# Создаем обработчик состояний
-class MessageStatesGroup(StatesGroup):
+async def on_startup(_):  # Запускает базу данных при запуске бота
+    await db_start()
+
+
+class MessageStatesGroup(StatesGroup):  # Создаем обработчик состояний
     phone_number = State()
     address = State()
     name = State()
@@ -36,7 +41,7 @@ async def start_command(message: types.Message):
                            text=f'{long_messages.HELLO} /help', parse_mode='HTML', reply_markup=keyboard.get_start_ikb())
     await bot.send_sticker(message.from_user.id,
                            sticker='CAACAgQAAxkBAAEKvvplUnmXAAEKsby2Cp2GpD-KKTmP97cAAlsXAAKm8XEeMnkyUbT3uFAzBA')
-    await message.delete()
+    await create_profile(user_id=message.from_user.id)
 
 
 @dp.message_handler(commands=['description'])
@@ -92,7 +97,7 @@ async def take_it_from_me(callback: types.CallbackQuery):
     await MessageStatesGroup.phone_number.set()
 
 
-# Обработчики состояния
+# ------- Обработчики состояния -------
 @dp.message_handler(state=MessageStatesGroup.phone_number)
 async def get_phone_number(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
@@ -113,10 +118,10 @@ async def get_address(message: types.Message, state: FSMContext):
 async def get_name(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['name'] = message.text
-        # await bot.send_message(chat_id=message.from_user.id, text=f"{data['phone_number'], data['address'], data['name']}")
+    await edit_profile(state, user_id=message.from_user.id)
     await message.reply('Ваши данные успешно сохранены! Наш менеджер свяжется с вами в течении часа!')
     await state.finish()
 
 
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
+    executor.start_polling(dp, skip_updates=True, on_startup=on_startup)

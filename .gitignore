@@ -8,6 +8,7 @@ __pycache__/
 # Environments
 .DS_Store
 .env
+new_db
 .venv
 env/
 /__pycache__/

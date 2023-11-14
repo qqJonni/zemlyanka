@@ -1,17 +1,27 @@
 import os
+
 import long_messages
 import keyboard
 
+from aiogram.dispatcher.filters.state import StatesGroup, State
+from aiogram.dispatcher import FSMContext
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from dotenv import load_dotenv, find_dotenv
 from aiogram import executor, types, Bot, Dispatcher
 
 
 load_dotenv(find_dotenv())
-bot = Bot(os.environ.get('TELEGRAM_TOKEN'))
-dp = Dispatcher(bot)
 storage = MemoryStorage()
+bot = Bot(os.environ.get('TELEGRAM_TOKEN'))
+dp = Dispatcher(bot, storage=storage)
 media_group = [types.InputMediaPhoto(media=photo) for photo in long_messages.ZEM_PHOTOS]
+
+
+# Создаем обработчик состояний
+class MessageStatesGroup(StatesGroup):
+    phone_number = State()
+    address = State()
+    name = State()
 
 
 # ------- Обработка стартовых команд -------
@@ -22,8 +32,10 @@ async def help_command(message: types.Message):
 
 @dp.message_handler(commands=['start'])
 async def start_command(message: types.Message):
-    await bot.send_message(chat_id=message.from_user.id, text='<em>Добро пожаловать в нашу <b>Zемлянку</b>! Если не знаешь куда ты попал, введи команду</em>😉 /help', parse_mode='HTML', reply_markup=keyboard.get_start_ikb())
-    await bot.send_sticker(message.from_user.id, sticker='CAACAgQAAxkBAAEKvvplUnmXAAEKsby2Cp2GpD-KKTmP97cAAlsXAAKm8XEeMnkyUbT3uFAzBA')
+    await bot.send_message(chat_id=message.from_user.id,
+                           text=f'{long_messages.HELLO} /help', parse_mode='HTML', reply_markup=keyboard.get_start_ikb())
+    await bot.send_sticker(message.from_user.id,
+                           sticker='CAACAgQAAxkBAAEKvvplUnmXAAEKsby2Cp2GpD-KKTmP97cAAlsXAAKm8XEeMnkyUbT3uFAzBA')
     await message.delete()
 
 
@@ -76,7 +88,34 @@ async def order_warehouse(callback: types.CallbackQuery):
 
 @dp.callback_query_handler(keyboard.cd.filter(action='take_it_from_me'))
 async def take_it_from_me(callback: types.CallbackQuery):
-    await callback.message.answer(text='Введите номер телефона и адрес:')
+    await callback.message.answer(text='Напишите свой номер телефона:')
+    await MessageStatesGroup.phone_number.set()
+
+
+# Обработчики состояния
+@dp.message_handler(state=MessageStatesGroup.phone_number)
+async def get_phone_number(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['phone_number'] = message.text
+    await message.reply('Теперь напишите адрес:')
+    await MessageStatesGroup.next()
+
+
+@dp.message_handler(state=MessageStatesGroup.address)
+async def get_address(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['address'] = message.text
+    await message.reply('А как к вам обращаться?')
+    await MessageStatesGroup.next()
+
+
+@dp.message_handler(state=MessageStatesGroup.name)
+async def get_name(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['name'] = message.text
+        # await bot.send_message(chat_id=message.from_user.id, text=f"{data['phone_number'], data['address'], data['name']}")
+    await message.reply('Ваши данные успешно сохранены! Наш менеджер свяжется с вами в течении часа!')
+    await state.finish()
 
 
 if __name__ == '__main__':

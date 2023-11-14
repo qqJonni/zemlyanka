@@ -1,6 +1,6 @@
 import os
 import long_messages
-from keyboard import ikb, ikb2
+import keyboard
 
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from dotenv import load_dotenv, find_dotenv
@@ -22,7 +22,7 @@ async def help_command(message: types.Message):
 
 @dp.message_handler(commands=['start'])
 async def start_command(message: types.Message):
-    await bot.send_message(chat_id=message.from_user.id, text='<em>Добро пожаловать в нашу <b>Zемлянку</b>! Если не знаешь куда ты попал, введи команду</em>😉 /help', parse_mode='HTML', reply_markup=ikb)
+    await bot.send_message(chat_id=message.from_user.id, text='<em>Добро пожаловать в нашу <b>Zемлянку</b>! Если не знаешь куда ты попал, введи команду</em>😉 /help', parse_mode='HTML', reply_markup=keyboard.get_start_ikb())
     await bot.send_sticker(message.from_user.id, sticker='CAACAgQAAxkBAAEKvvplUnmXAAEKsby2Cp2GpD-KKTmP97cAAlsXAAKm8XEeMnkyUbT3uFAzBA')
     await message.delete()
 
@@ -52,23 +52,31 @@ async def send_dimensions(message: types.Message):
     await bot.send_message(chat_id=message.from_user.id, text=long_messages.DIMENSIONS)
 
 
-# ------- Обработчики кнопок -------
-@dp.callback_query_handler()
-async def actions(callback: types.CallbackQuery):
-    if callback.data == 'boxing':
-        await callback.message.answer(text='Что делаем с вещами?', reply_markup=ikb2)
-    if callback.data == 'rent':
-        pass  # Здесь необходимо реализовать логику функции, которая будет возвращать срок оставшейся аренды
-    if callback.data == 'photo':
-        await bot.send_media_group(chat_id=callback.message.chat.id, media=media_group)
+# ------- Обработчики Inline кнопок -------
+@dp.callback_query_handler(keyboard.cd.filter(action='boxing'))
+async def push_boxing(callback: types.CallbackQuery):
+    await callback.message.answer(text='Что делаем с вещами?', reply_markup=keyboard.get_rent_ikb())
 
 
-@dp.callback_query_handler()
+@dp.callback_query_handler(keyboard.cd.filter(action='rent'))
+async def push_rent(callback: types.CallbackQuery):
+    pass  # Здесь необходимо реализовать логику функции, которая будет возвращать срок оставшейся аренды
+
+
+@dp.callback_query_handler(keyboard.cd.filter(action='photo'))
+async def push_photo(callback: types.CallbackQuery):
+    await bot.send_media_group(chat_id=callback.message.chat.id, media=media_group)
+
+
+@dp.callback_query_handler(keyboard.cd.filter(action='bring_myself'))
 async def order_warehouse(callback: types.CallbackQuery):
-    if callback.data == 'bring_myself':
-        await callback.message.answer(text=long_messages.BRING_MYSELF)
-        await bot.send_location(chat_id=callback.message.from_user.id, latitude=55.669873, longitude=37.307199)
+    await callback.message.answer(text=long_messages.BRING_MYSELF, parse_mode='HTML')
+    await bot.send_location(chat_id=callback.from_user.id, latitude=55.669873, longitude=37.307199)
 
+
+@dp.callback_query_handler(keyboard.cd.filter(action='take_it_from_me'))
+async def take_it_from_me(callback: types.CallbackQuery):
+    await callback.message.answer(text='Введите номер телефона и адрес:')
 
 
 if __name__ == '__main__':

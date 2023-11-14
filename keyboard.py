@@ -1,17 +1,21 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.callback_data import CallbackData
 
-ikb = InlineKeyboardMarkup(row_width=2)
-ikb2 = InlineKeyboardMarkup(row_width=2)
-
-# Кнопки начального меню
-ib1 = InlineKeyboardButton(text='Заказать бокс', callback_data='boxing')
-ib2 = InlineKeyboardButton(text='Срок аренды', callback_data='rent')
-ib3 = InlineKeyboardButton(text='Фото Zемлянки', callback_data='photo')
-
-# Кнопки выбора аренды
-ib4 = InlineKeyboardButton(text='Привезу сам', callback_data='bring_myself')
-ib5 = InlineKeyboardButton(text='Заберите у меня', callback_data='take_it_from_me')
+cd = CallbackData('ikb', 'action')  # This is a pattern from official documentation
 
 
-ikb.add(ib1, ib2, ib3)
-ikb2.add(ib4, ib5)
+def get_start_ikb():
+    ikb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton('Заказать бокс', callback_data=cd.new('boxing'))],
+        [InlineKeyboardButton('Срок аренды', callback_data=cd.new('rent'))],
+        [InlineKeyboardButton('Фото Zемлянки', callback_data=cd.new('photo'))],
+    ])
+    return ikb
+
+
+def get_rent_ikb():
+    ikb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton('Привезу сам', callback_data=cd.new('bring_myself'))],
+        [InlineKeyboardButton('Заберите у меня', callback_data=cd.new('take_it_from_me'))],
+    ])
+    return ikb

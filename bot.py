@@ -9,7 +9,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from dotenv import load_dotenv, find_dotenv
 from aiogram import executor, types, Bot, Dispatcher
 
-from sqlite import db_start, create_profile, edit_profile
+from sqlite import db_start, create_profile, edit_profile, get_duedate
 
 
 load_dotenv(find_dotenv())
@@ -77,7 +77,11 @@ async def push_boxing(callback: types.CallbackQuery):
 
 @dp.callback_query_handler(keyboard.cd.filter(action='rent'))
 async def push_rent(callback: types.CallbackQuery):
-    pass  # Здесь необходимо реализовать логику функции, которая будет возвращать срок оставшейся аренды
+    duedate = await get_duedate(user_id=callback.message.chat.id)
+    if duedate is None:
+        await callback.message.answer(text='У вас нет арендованных боксов.')
+    else:
+        await callback.message.answer(text="Ваша аренда заканчивается {date}".format(date=duedate))
 
 
 @dp.callback_query_handler(keyboard.cd.filter(action='photo'))

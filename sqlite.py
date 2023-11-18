@@ -1,4 +1,5 @@
 import sqlite3 as sq
+from datetime import datetime
 
 
 async def db_start():
@@ -8,6 +9,7 @@ async def db_start():
     cur = db.cursor()
 
     cur.execute("CREATE TABLE IF NOT EXISTS profile(user_id TEXT PTIMARY KEY, name TEXT, phone_number TEXT, address TEXT)")
+    cur.execute("CREATE TABLE IF NOT EXISTS box(box_id TEXT PTIMARY KEY, due_date date, FOREIGN KEY (user)  REFERENCES profile (user_id))")
     db.commit()
 
 
@@ -22,3 +24,12 @@ async def edit_profile(state, user_id):
         cur.execute("UPDATE profile SET name = '{}', phone_number = '{}', address = '{}' WHERE user_id == '{}'".format(
             data['name'], data['phone_number'], data['address'], user_id))
         db.commit()
+
+
+async def get_duedate(user_id):
+    duedate = cur.execute("SELECT due_date FROM box WHERE user = '{key}'".format(key=user_id)).fetchone()
+    if duedate is None:
+        return None
+    else:
+        duedate_rus = datetime.strptime(duedate[0], "%Y-%m-%d").strftime("%d.%m.%Y")
+        return duedate_rus

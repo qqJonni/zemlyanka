@@ -74,26 +74,26 @@ async def take_it_from_me(callback: types.CallbackQuery):
 
 
 # ------- Обработчики состояния -------
-# async def get_phone_number(message: types.Message, state: FSMContext):
-#     async with state.proxy() as data:
-#         data['phone_number'] = message.text
-#     await message.reply('Теперь напишите адрес:')
-#     await MessageStatesGroup.next()
+async def get_phone_number(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['phone_number'] = message.text
+    await message.reply('Теперь напишите адрес:')
+    await MessageStatesGroup.next()
 
 
-# async def get_address(message: types.Message, state: FSMContext):
-#     async with state.proxy() as data:
-#         data['address'] = message.text
-#     await message.reply('А как к вам обращаться?')
-#     await MessageStatesGroup.next()
+async def get_address(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['address'] = message.text
+    await message.reply('А как к вам обращаться?')
+    await MessageStatesGroup.next()
 
 
-# async def get_name(message: types.Message, state: FSMContext):
-#     async with state.proxy() as data:
-#         data['name'] = message.text
-#     await edit_profile(state, user_id=message.from_user.id)
-#     await message.reply('Ваши данные успешно сохранены! Наш менеджер свяжется с вами в течении часа!')
-#     await state.finish()
+async def get_name(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['name'] = message.text
+    await edit_profile(state, user_id=message.from_user.id)
+    await message.reply('Ваши данные успешно сохранены! Наш менеджер свяжется с вами в течении часа!')
+    await state.finish()
 
 
 def register_handlers(dp: Dispatcher):
@@ -108,6 +108,6 @@ def register_handlers(dp: Dispatcher):
     dp.register_message_handler(push_photo, keyboard.cd.filter(action='photo'))
     dp.register_message_handler(order_warehouse, keyboard.cd.filter(action='bring_myself'))
     dp.register_message_handler(take_it_from_me, keyboard.cd.filter(action='take_it_from_me'))
-    # dp.register_message_handler(get_phone_number, state=MessageStatesGroup.phone_number)
-    # dp.register_message_handler(get_address, state=MessageStatesGroup.address)
-    # dp.register_message_handler(get_name, state=MessageStatesGroup.name)
+    dp.register_message_handler(get_phone_number, state=MessageStatesGroup.phone_number)
+    dp.register_message_handler(get_address, state=MessageStatesGroup.address)
+    dp.register_message_handler(get_name, state=MessageStatesGroup.name)

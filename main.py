@@ -1,4 +1,3 @@
-import asyncio
 import long_messages
 import handlers
 
@@ -14,20 +13,21 @@ async def on_startup(_):  # Запускает базу данных при за
     await db_start()
 
 
-async def handlers():
-    handlers.start_command(dp)
-    handlers.description_command(dp)
-    handlers.send_point(dp)
-    handlers.send_list(dp)
-    handlers.send_dimensions(dp)
-    handlers.push_boxing(dp)
-    handlers.push_rent(dp)
-    handlers.push_photo(dp)
-    handlers.order_warehouse(dp)
-    handlers.take_it_from_me(dp)
-    handlers.get_phone_number(dp)
-    handlers.get_address(dp)
-    handlers.get_name(dp)
+# async def handlers():
+handlers.start_command(dp)
+handlers.help_command(dp)
+handlers.description_command(dp)
+    # handlers.send_point(dp)
+    # handlers.send_list(dp)
+    # handlers.send_dimensions(dp)
+    # handlers.push_boxing(dp)
+    # handlers.push_rent(dp)
+    # handlers.push_photo(dp)
+    # handlers.order_warehouse(dp)
+    # handlers.take_it_from_me(dp)
+    # handlers.get_phone_number(dp)
+    # handlers.get_address(dp)
+    # handlers.get_name(dp)
 
 
 if __name__ == '__main__':
